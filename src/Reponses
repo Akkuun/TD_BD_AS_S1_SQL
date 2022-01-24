@@ -1,0 +1,1093 @@
+https://webinfo.iutmontp.univ-montp2.fr/~coletta/Td6SQL.pdf
+
+TD6
+
+Q1
+SELECT DISTINCT LIB FROM PRODUIT;
+
+Q2
+SELECT DISTINCT NOM FROM CLIENT;
+
+Q3
+SELECT * FROM PRODUIT WHERE QS>=50;  // * c est pour tout avoir
+
+Q4
+SELECT * FROM ACHAT WHERE QA>12;
+
+Q5
+SELECT DISTINCT QS,COUL FROM PRODUIT WHERE LIB='Lampe';
+
+Q6
+SELECT NP FROM PRODUIT WHERE LIB='Crayon Luxe' AND QS>=20;
+
+Q7
+SELECT NCLI FROM ACHAT WHERE QA>=10;
+
+Q8
+SELECT NCLI FROM CLIENT WHERE NOM LIKE'J%' AND NOM LIKE '%a%';
+
+Q9  Proj[ncli](select(lib='lampe'))( produit |><| achat))
+                                        np=np
+
+SELECT DISTINCT NCLI FROM PRODUIT JOIN ACHAT ON PRODUIT.NP=ACHAT.NP WHERE LIB='Lampe';
+
+Q10
+SELECT DISTINCT NCLI FROM PRODUIT JOIN ACHAT ON PRODUIT.NP=ACHAT.NP WHERE LIB='Lampe' AND COUL='Rouge';
+
+Q11 Proj[LIB](select(QA>13))( PRODUIT |><| achat))
+                                        NP = NP
+SELECT DISTINCT LIB FROM ACHAT JOIN PRODUIT ON ACHAT.NP=PRODUIT.NP WHERE QA>=13.
+
+Q12 Proj[nom](select(LIB='CRAYON DE LUXE'^ QA>=2))( PRODUIT |><| ACHAT))
+                                                        NP=NP
+SELECT DISTINCT NOM FROM PRODUIT JOIN ACHAT ON PRODUIT.NP=ACHAT.NP JOIN CLIENT ON ACHAT.NCLI=CLIENT.NCLI WHERE QA>=2 AND LIB='Crayon Luxe';
+
+Q13   Proj[ncli](client)
+    -
+     Proj[ncli](select(lib!=lampe)( achat|><|Produit))
+
+
+select NCLI FROM CLIENT MINUS SELECT NCLI FROM achat JOIN produit ON achat.np=produit.np  WHERE LIB='Lampe';
+
+Q14  ACHAT |><| CLIENT INTERSECT        ACHAT - QA<=3
+        NCLI=NCLI
+
+SELECT DISTINCT NOM FROM CLIENT JOIN ACHAT ON CLIENT.NCLI=ACHAT.NCLI WHERE QA>=1 INTERSECT SELECT NOM FROM CLIENT JOIN ACHAT ON CLIENT.NCLI=ACHAT.NCLI MINUS SELECT DISTINCT NOM FROM CLIENT JOIN ACHAT ON CLIENT.NCLI=ACHAT.NCLI  WHERE QA<=3;
+
+Q15   NP que personne n'a acheté'
+Proj[NP](Produit)
+Proj[NP](Achat)
+
+
+SELECT NP FROM PRODUIT MINUS SELECT NP FROM ACHAT;
+
+Q16  Nom des clients ayant achet´e une Lampe et une Agrafeuse
+     PROJ NOM SELECT LIB=LAMPE  (client achat produit)
+     PROJ NOM SELECT LIB=AGRAFEUSE  (client achat produit)
+
+SELECT DISTINCT NOM FROM CLIENT JOIN ACHAT ON CLIENT.NCLI=ACHAT.NCLI JOIN PRODUIT ON ACHAT.NP=PRODUIT.NP WHERE LIB='Lampe'
+INTERSECT SELECT DISTINCT NOM FROM CLIENT JOIN ACHAT ON CLIENT.NCLI=ACHAT.NCLI JOIN PRODUIT ON ACHAT.NP=PRODUIT.NP WHERE LIB='Agrafeuse';
+
+Q17     proj nom client         Nom des clients ayant achet´e tous les produits.
+    -   proj nom (     proj nom,np (produit x client       )   )
+                    - proj nom,np (  achat jointure client)   )
+                                            ncli=ncli
+
+SELECT DISTINCT NOM FROM CLIENT MINUS SELECT DISTINCT NOM FROM (SELECT NOM,NP FROM PRODUIT,CLIENT MINUS SELECT NOM,NP FROM ACHAT JOIN CLIENT ON ACHAT.NCLI=CLIENT.NCLI);
+
+
+ou
+
+
+select distinct nom from client minus
+select distinct nom from ( select np,nom from client,achat minus select np,nom from achat join client on achat.ncli=client.ncli           )
+Q18
+
+Q19  Num´eros des produits qui ont ´et´e achet´e par au moins deux clients
+
+SELECT DISTINCT achat.np
+FROM achat
+         JOIN achat achat2 ON achat.np = achat2.np
+WHERE achat.ncli != achat2.ncli;
+
+Q20  Libelle et couleur des produits qui ont été acheté par au moins deux clients.
+   lib & coul avec ncli
+
+
+SELECT DISTINCT PRODUIT.LIB,PRODUIT.COUL
+FROM achat
+         JOIN achat achat2 ON achat.np = achat2.np JOIN PRODUIT ON ACHAT.NP=PRODUIT.NP
+WHERE achat.ncli != achat2.ncli;
+Q21
+
+SELECT DISTINCT nom
+FROM client
+         JOIN achat  ON client.ncli=achat.ncli
+         JOIN achat achat2 ON achat.np = achat2.np
+WHERE achat2.ncli=103;
+
+
+TP 7 RECRUTEMENT CINEMA
+
+https://mail.umontpellier.fr/service/home/~/?auth=co&loc=fr&id=515&part=1
+
+Q1
+
+SELECT DISTINCT NOM,PRENOM,ADRESSE FROM DEMANDEUR;
+
+Q2
+
+
+SELECT DISTINCT NOME,ADRE FROM ENTREPRISE WHERE ADRE LIKE'%USA%';
+
+Q3
+SELECT DISTINCT NOME,ADRE FROM ENTREPRISE JOIN OFFRE ON ENTREPRISE.NUME=OFFRE.NUME;
+
+Q4
+SELECT DISTINCT QUALIF FROM OFFRE WHERE SALAIRE>3000;
+
+Q5
+SELECT  DISTINCT NOM,PRENOM FROM DEMANDEUR JOIN OFFRE ON DEMANDEUR.QUALIF=OFFRE.QUALIF ;
+
+Q6
+
+SELECT DISTINCT NOM,PRENOM FROM DEMANDEUR MINUS SELECT DISTINCT NOM,PRENOM FROM DEMANDEUR JOIN OFFRE ON DEMANDEUR.QUALIF=OFFRE.QUALIF;
+Q7
+
+SELECT DISTINCT NOME FROM ENTREPRISE MINUS SELECT DISTINCT NOME FROM OFFRE JOIN ENTREPRISE ON OFFRE.NUME=ENTREPRISE.NUME;
+
+Q8
+
+SELECT DISTINCT NOME FROM ENTREPRISE WHERE ADRE LIKE '%USA%' UNION  SELECT DISTINCT NOME FROM ENTREPRISE JOIN OFFRE ON ENTREPRISE.NUME=OFFRE.NUME WHERE SALAIRE>=2000 ;
+
+Q9
+
+SELECT DISTINCT NOME FROM ENTREPRISE JOIN OFFRE ON ENTREPRISE.NUME=OFFRE.NUME MINUS SELECT DISTINCT NOME FROM ENTREPRISE JOIN OFFRE ON ENTREPRISE.NUME=OFFRE.NUME WHERE CONTRAT!='CDI';
+
+Q10
+
+SELECT DISTINCT NOME FROM ENTREPRISE MINUS
+SELECT DISTINCT NOME FROM (SELECT DISTINCT NOME,CONTRAT FROM OFRRE,ENTREPRISE MINUS SELECT DISTINCT NOME,CONTRAT FROM OFFRE JOIN ENTREPRISE ON OFFRE.NUME=ENTREPRISE.NUME);
+
+Q11
+
+SELECT DISTINCT NOME FROM ENTREPRISE JOIN OFFRE ON ENTREPRISE.NUME=OFFRE.NUME WHERE QUALIF='Développeur' INTERSECT
+SELECT DISTINCT NOME FROM ENTREPRISE JOIN OFFRE ON ENTREPRISE.NUME=OFFRE.NUME WHERE QUALIF='AdminSys';
+
+PENSE a AFFICHER TOUT LES TUPLES DE OFFRE POUR VOIR SI LES QUALIF CORREPONDENT AVEC TA DEMANDE
+ICI FAIT SELECT *FROM OFFRE
+
+Q12
+
+SELECT DISTINCT OFFRE.NUME
+FROM OFFRE
+    JOIN OFFRE OFFRE2 ON OFFRE.NUME=OFFRE2.NUME
+WHERE OFFRE.NUMO!=OFFRE2.NUMO;
+
+Q13
+
+SELECT DISTINCT DEMANDEUR.NOM,DEMANDEUR.PRENOM
+FROM DEMANDEUR
+         JOIN OFFRE  ON DEMANDEUR.QUALIF=OFFRE.QUALIF JOIN OFFRE OFFRE2 ON OFFRE.QUALIF=OFFRE2.QUALIF JOIN OFFRE OFFRE3 ON OFFRE.QUALIF=OFFRE3.QUALIF JOIN DEMANDEUR ON OFFRE.QUALIF=DEMANDEUR.QUALIF
+WHERE OFFRE.NUMO!=OFFRE2.NUMO AND  OFFRE.NUMO!=OFFRE3.NUMO AND OFFRE2.NUMO!=OFFRE3.NUMO;
+
+
+Q14
+
+SELECT DISTINCT NOM,PRENOM FROM DEMANDEUR MINUS
+SELECT DISTINCT NOM,PRENOM FROM DEMANDEUR JOIN OFFRE ON DEMANDEUR.QUALIF=OFFRE.QUALIF WHERE SALAIRE<=1600
+
+INTERSECT
+
+SELECT DISTINCT NOM,PRENOM FROM DEMANDEUR JOIN OFFRE ON DEMANDEUR.QUALIF=OFFRE.QUALIF JOIN OFFRE OFFRE2 ON OFFRE.QUALIF=OFFRE2.QUALIF
+WHERE OFFRE.NUMO!=OFFRE2.NUMO AND OFFRE.SALAIRE>2000 AND OFFRE2.SALAIRE>2000;
+
+Q15 PROJ[NUMO](offre)
+-
+   proj[offre.numo](select(offre.salaire<offre2.salaire)(offre x offre2))
+
+SELECT NUMO FROM OFFRE MINUS
+SELECT OFFRE.NUMO FROM OFFRE,OFFRE OFFRE2 WHERE OFFRE.SALAIRE<OFFRE2.SALAIRE;
+                                   |=> (produit cartésien + copie table en même temps)
+
+Q16
+
+SELECT distinct nom FROM DEMANDEUR WHERE
+        QUALIF=(SELECT qualif from demandeur where nom='Dalors' )
+                                     and nom!='Dalors';
+
+
+Q1
+
+SELECT DISTINCT titre FROM Film WHERE real LIKE 'Mickael%';
+
+Q2
+
+SELECT DISTINCT nom FROM acteur JOIN joue ON acteur.numa=joue.numa join Film on joue.numf=film.numf WHERE titre='Mission Impossible' ;
+
+Q3
+
+SELECT DISTINCT titre FROM film JOIN joue ON film.numf=joue.numf JOIN projette ON joue.numf=projette.numf WHERE nums=2;
+
+Q4
+
+select distinct real from film join joue on film.numf=joue.numf join acteur on joue.numa=acteur.numa where real=nom;
+Q5
+select distinct real from film join joue on film.numf=joue.numf join acteur on joue.numa=acteur.numa where real=nom;
+
+Q6
+
+select distinct nom from acteur minus
+select distinct nom from (select nom,numf  from acteur,joue minus select nom,numf from acteur join joue on acteur.numa=joue.numa);
+
+Q7 a corriger
+
+
+select distinct nom from acteur minus
+
+select distinct nom from (  select distinct nom,numf from acteur,film  where real like 'Spielberg' minus select distinct nom,numf from acteur join joue on acteur.numa=joue.numa    )
+Q8 a corriger
+
+
+Q9
+SELECT DISTINCT film.real
+FROM film
+         JOIN film film2 ON film.real=film2.real
+WHERE film.numf!=film2.numf;
+
+Q10
+select distinct titre from film
+join joue on  film.numf=joue.numf join acteur on joue.numa=acteur.numa where nom ='Angelina Jolie' intersect
+select distinct titre from film
+join joue on  film.numf=joue.numf join acteur on joue.numa=acteur.numa where nom ='Brad Pitt' ;
+
+Q11 PROJ[NUMF](projette)
+-
+   proj[projette.NUMF](select(FILM.DATEP>FILM2.DATEP)(PROJETTE X PROJETTE2 ))
+
+select  numf from projette minus
+select   projette.numf from projette,projette projette2  where projette.datep<projette2.datep;
+
+
+
+TD8 julie https://webinfo.iutmontp.univ-montp2.fr/~coletta/TD8.pdf
+
+val3.1 INSERT
+
+1) INSERT INTO produit VALUES (20, 'Cahier', 'Blanc', 100);
+
+2) INSERT INTO produit(np,lib,qs)  VALUES (21, 'Gomme', 500);
+
+3) nombre de eurs insuffisant INSERT INTO produit VALUES ('Trombone', 'Gris', 1000)
+
+4) violation de contrainte unique (NUSSBAUMERJ.PK_PRODUIT)
+
+5) INSERT INTO achat VALUES (101, 20, 12);
+
+3.2 DELETE
+
+1) DELETE FROM produit WHERE np=21;
+
+2) violation de contrainte (NUSSBAUMERJ.FK_ACHAT_NP) d'intégrité - enregistrement fils existant
+	le produit se trouve aussi dans la table achat
+	il faut d'abord supprimer les achats concernant ce produit
+
+3) DELETE FROM achat WHERE qa<5;
+
+4) DELETE FROM achat WHERE ncli IN
+                           (SELECT achat.ncli FROM achat
+                                                       JOIN client ON client.ncli=achat.ncli WHERE nom='Ullman');
+
+3.3 UPDATE
+
+        1) UPDATE achat SET qa=qa+10 WHERE ncli IN (SELECT achat.ncli FROM achat
+                                                                               JOIN client ON client.ncli=achat.ncli WHERE nom='Defrere')
+                                       AND np IN (SELECT achat.np FROM achat
+                                                                           JOIN produit ON produit.np=achat.np WHERE lib='Agrafeuse');
+
+2) UPDATE produit SET qs=qs+10, coul='Jaune' WHERE lib='Crayon Luxe' ;
+
+3) UPDATE achat SET qa=qa+2 WHERE ncli IN (SELECT achat.ncli FROM achat
+                                                                      JOIN client ON client.ncli=achat.ncli WHERE nom='Defrere');
+
+4) violation de contrainte (NUSSBAUMERJ.FK_ACHAT_NP) d'intégrité - enregistrement fils existant
+	le np se trouve aussi dans la table achat'
+
+4.1 ALTER
+
+1) ALTER TABLE client ADD adresse VARCHAR(40);
+
+2) ALTER TABLE client MODIFY adresse VARCHAR(80);
+
+3) UPDATE client SET adresse='Montpellier';
+
+4) ALTER TABLE client  MODIFY adresse DEFAULT 'Mende';
+
+5) INSERT INTO client (ncli, nom) VALUES (180, 'Parent');
+
+
+4.2 CREATE
+
+1) CREATE TABLE fournisseur
+   (nf INTEGER ,
+    nom  VARCHAR(40) NOT NULL,
+    adr VARCHAR(40) NOT NULL,
+    CONSTRAINT pk_fournisseur PRIMARY KEY (nf));
+
+2) INSERT INTO fournisseur VALUES (1001, 'Bureau Valle', 'Les Sables d Olonne');
+INSERT INTO fournisseur VALUES (1002, 'BIC', 'Montpellier');
+INSERT INTO fournisseur VALUES (1003, 'NADA', 'Mende');
+
+3) impossible d'insérer NULL dans ("NUSSBAUMERJ"."FOURNISSEUR"."ADR")
+	violation de contrainte unique (NUSSBAUMERJ.PK_FOURNISSEUR) '
+
+4) CREATE TABLE reap (
+                         nf INTEGER,
+                         np INTEGER,
+                         date_reap DATE DEFAULT CURRENT_DATE,
+                         qr INTEGER NOT NULL,
+                         CONSTRAINT reap check (qr>0),
+                         CONSTRAINT pk_reap PRIMARY KEY (nf,np, date_reap),
+                         CONSTRAINT fk_reap_nf FOREIGN KEY (nf) REFERENCES fournisseur(nf),
+                         CONSTRAINT fk_reap_np FOREIGN KEY (np) REFERENCES produit(np));
+
+5) INSERT INTO reap(nf,np,qr) VALUES (1001,1,51);
+INSERT INTO reap(nf,np,qr) VALUES (1001,4,100);
+INSERT INTO reap(nf,np,qr) VALUES (1001,5,100);
+INSERT INTO reap(nf,np,qr) VALUES (1001,6,100);
+INSERT INTO reap(nf,np,qr) VALUES (1001,7,100);
+INSERT INTO reap VALUES (1001,7,'01/01/2020',100);
+INSERT INTO reap VALUES (1002,7,'01/01/2020',500);
+INSERT INTO reap VALUES (1003,1,'01/01/2020',49);
+INSERT INTO reap VALUES (1003,9,'01/01/2020',100);
+INSERT INTO reap VALUES (1003,9,'01/02/2020',50);
+INSERT INTO reap VALUES (1003,10,'01/01/2020',200);
+
+6) impossible d'insérer NULL dans ("NUSSBAUMERJ"."REAP"."QR")
+violation de contrainte unique (NUSSBAUMERJ.PK_REAP)
+violation de contrainte d'intégrité (NUSSBAUMERJ.FK_REAP_NF) - clé parent introuvable
+
+
+4.3 REQUETES
+
+1)SELECT nf FROM reap JOIN produit ON produit.np=reap.np WHERE lib='Lampe'
+  UNION
+  SELECT nf FROM reap JOIN produit ON produit.np=reap.np WHERE lib='Agrafeuse';
+
+2)SELECT nom FROM fournisseur
+                      JOIN reap ON reap.nf=fournisseur.nf
+                      JOIN produit ON produit.np=reap.np WHERE lib='Lampe'
+  INTERSECT
+  SELECT nom FROM fournisseur
+                      JOIN reap ON reap.nf=fournisseur.nf
+                      JOIN produit ON produit.np=reap.np WHERE lib='Agrafeuse';
+
+3) SELECT nom FROM fournisseur
+                       MINUS
+SELECT nom FROM fournisseur
+                    JOIN reap ON reap.nf=fournisseur.nf
+                    JOIN produit ON produit.np=reap.np WHERE lib='Lampe';
+
+4) SELECT nom FROM fournisseur
+                       MINUS
+SELECT nom FROM fournisseur
+                    JOIN reap ON reap.nf=fournisseur.nf WHERE date_reap>'02/02/2020';
+
+5) SELECT DISTINCT reap.nf FROM reap JOIN reap r2 ON r2.nf=reap.nf WHERE reap.np!=r2.np;
+
+6) SELECT DISTINCT reap.np FROM reap
+                                    JOIN reap r2 ON r2.np=reap.np
+   WHERE reap.nf!=r2.nf
+   UNION
+SELECT DISTINCT reap.np FROM reap
+                                 JOIN reap r2 ON reap.np=r2.np
+WHERE reap.date_reap!=r2.date_reap;
+
+7) SELECT DISTINCT reap.np FROM reap
+                                    JOIN reap r2 ON r2.np=reap.np
+   WHERE reap.nf!=r2.nf AND reap.qr>50 AND r2.qr>50;
+
+8) SELECT nf FROM fournisseur
+                      MINUS
+SELECT nf FROM (SELECT nf,produit.np FROM fournisseur, produit
+    MINUS
+    SELECT nf,np FROM reap);
+
+9) SELECT nf FROM fournisseur
+                      MINUS
+SELECT nf FROM (
+                   SELECT nf,np FROM fournisseur, produit WHERE lib='Lampe'
+                       MINUS
+                   SELECT nf,produit.np FROM reap JOIN produit ON produit.np=reap.np WHERE lib='Lampe');
+
+10) QR max ?
+SELECT qr FROM reap
+                   MINUS
+SELECT reap.qr FROM reap,reap r2 WHERE reap.qr<r2.qr;
+
+11) produit dont le QR est max ?
+
+fin TD8 julie
+
+
+TD8 MAthis
+https://webinfo.iutmontp.univ-montp2.fr/~coletta/TD8.pdf
+
+1)
+insert into produit (np,lib,coul,qs) values (20,'cahier','blanc',100)
+
+2)
+
+insert into produit (np,lib,qs) values (21,'gomme',500)
+
+3)
+
+pas possible car on doit préciser toutes les contraintes quon veut rajouter
+
+4)
+pas possible car on ne peut pas faire de doublons pour une même clé primaire
+
+5)
+
+insert into achat (ncli,np,qa) values (101,20,12)
+
+1)delete from produit where np=21
+
+2)
+ tenter de détruire un tuple qui à une relation avec une clé étrangère, pour cela, on doit enlever d'abors la relation entre la clé primaire et la clé étrangère qui fait l'erreur puis on pourra supprimer le tuple
+
+ 3)
+delete achat where qa<5
+
+4)
+
+delete from achat where ncli in (select achat.ncli from achat join client on achat.ncli=client.ncli where nom='Ullman');
+
+
+jointure entre client et acaht pour avoir le ncli et le in pour avoir la requete des deux tables
+
+1)
+
+
+
+update achat set qa=qa+10 where
+ ncli in (select achat.ncli from achat join client on achat.ncli=client.ncli where nom like 'Ullman')      on cherche que le ncli = nom ullman et lib =agrafeuse
+and np in (select achat.np from achat join produit on produit.np=achat.np where lib='Agrafeuse')
+
+in = =
+
+quand ya un in on cherche dans une autre table
+
+2)update produit set qs=qs+10, coul='jaune' where lib like 'Crayon Luxe'
+
+3)
+
+update achat set qa=qa+2 where ncli in(select achat.ncli from client join achat on client.ncli=achat.ncli where nom like'Defrere')
+
+4)
+
+pas posssible car np est la clé primaire
+
+1) alter table client add adresse varchar(40)
+
+2)alter table client modify adresse varchar(80)
+
+3)
+
+ALTER TABLE client ADD adresse varchar(80) DEFAULT 'Montpellier'
+
+4)
+ALTER TABLE client modify  adresse varchar(80) DEFAULT 'mende'
+
+5)
+
+
+insert into client (ncli,nom) values (1,'James')
+
+
+1)
+create table FOURNISSEUR2(
+nf int,
+nom varchar(40),
+adr varchar(40) not null,
+constraint pk_fournisseur primary key(nf)
+);
+
+2)
+
+3) cela ne passe pas car on ne peut pas ne pas mettre dadresse
+
+et 1002 existe déjà
+
+4)
+create table reap
+(
+    nf integer not null,
+    np integer not null,
+    date_reap date default current_date,
+    qr integer not null,
+    CONSTRAINT qr_is_positive CHECK (qr >0),
+    constraint fk_reap_nf foreign key (nf) references fournisseur2(nf),
+    constraint fk_reap_np foreign key (np) references produit(np),
+    constraint pk_reap_np primary key (np,date_reap,nf));
+
+)
+
+5)describe  reap2 permet de voir comment est composé la table
+
+alter table reap2 modify qr not null
+delete from reap where qr is null
+
+
+
+Fin TD8 mathis
+
+
+
+
+
+
+
+
+
+
+
+
+    TD9 http://www.lirmm.fr/~coletta/Cours/BD/TD9-Fonction.pdf
+
+
+1)
+create table Organisation(
+                             nomorg varchar(30) not null,
+                             pays varchar(30) not null,
+                             constraint pk_Organisation primary key(nomorg)
+);
+
+create table Chercheur(
+                          numc int,
+                          nom varchar(30) not null,
+                          prenom varchar(30) not null,
+                          equipe varchar(30) not null,
+                          constraint pk_Chercheur primary key(numc)
+
+
+)
+create table Mission(
+
+                        numis int,
+                        pays varchar(30) not null,
+                        datedeb date not null,
+                        datefin date not null,
+                        objet varchar(30) not null,
+                        numc int not null,
+                        constraint pk_Mission primary key(numis),
+                        constraint fk_Mission foreign key (numc) references Chercheur(numc),
+                        constraint date_ok check (datefin>datedeb)
+
+)
+
+create table Visite(
+                       numis int,
+                       nomorg varchar(30),
+                       datevisite date not null,
+                       constraint pk_Visite primary key (numis,nomorg),
+                       constraint fk_Visite_numis foreign key (numis) references Mission(numis),
+                       constraint fk_Visite_nomorg foreign key (nomorg) references Organisme(nomorg)
+);
+
+select table_name from user_tables
+
+clé étrangère ==> not null quand même
+
+2)
+
+insert into chercheur (numc,nom,prenom,equipe) values (1,'Roitelet','Martine','BD');
+
+insert into chercheur (numc,nom,prenom,equipe) values (2,'Dupont','Jacques','IA');
+insert into chercheur (numc,nom,prenom,equipe) values (3,'Duvivier','Anne','BD');
+insert into chercheur (numc,nom,prenom,equipe) values (4,'Rifflet','Jean-Francois','Systeme');
+
+3)
+
+insert into Organisme (nomorg,pays) values ('LIRMM','France');
+insert into Organisme (nomorg,pays) values ('IRIT','France');
+insert into Organisme (nomorg,pays) values ('MIT','Etats-Unis');
+insert into organisme (nomorg,pays) values ('4C'','Irlande);
+insert into Organisme (nomorg,pays) values ('NICTA','Australie');
+
+4)
+
+insert into Mission (numis,pays,datedeb,datefin,objet,numc) values (101,'France','08/01/2020','15/01/2020','Contrat ANR',1);
+insert into Mission (numis,pays,datedeb,datefin,objet,numc) values (102,'France','08/01/2020','15/01/2020','Contrat ANR',3);
+insert into Mission (numis,pays,datedeb,datefin,objet,numc) values (103,'Irlande','08/09/2020','21/09/2020','CP 2020',2);
+insert into Mission (numis,pays,datedeb,datefin,objet,numc) values (104,'Australie','07/01/2020','18/02/2020','CPAIOR',2);
+insert into Mission (numis,pays,datedeb,datefin,objet,numc) values (105,'Etats-Unis','31/01/2020','08/02/2020','IJCAI',2);
+insert into Mission (numis,pays,datedeb,datefin,objet,numc) values (106,'France','01/06/2020','15/06/2020','Coordination ANR',1);
+insert into Mission (numis,pays,datedeb,datefin,objet,numc) values (107,'Australie','08/01/2020','18/01/2020','CPAIOR',1);
+
+5)
+
+insert into Visite (numis,nomorg,datevisite) values (101,'IRIT','08/01/2020');
+insert into Visite (numis,nomorg,datevisite) values (102,'IRIT','08/01/2020');
+insert into Visite (numis,nomorg,datevisite) values (103,'4C','08/09/2020');
+insert into Visite (numis,nomorg,datevisite) values (103,'Cork University','12/09/2020');
+insert into Visite (numis,nomorg,datevisite) values (104,'NICTA','07/01/2020');
+insert into Visite (numis,nomorg,datevisite) values (105,'MIT','31/01/2020');
+insert into Visite (numis,nomorg,datevisite) values (106,'LIRMM','01/06/2020');
+insert into Visite (numis,nomorg,datevisite) values (107,'NICTA','08/01/2020');
+
+q1)
+
+select distinct nomorg from organisme join mission on organisme.pays=Mission.pays join chercheur on mission.numc=chercheur.numc where nom='Roitelet'
+
+q2)
+
+select nom from chercheur join mission on chercheur.numc=mission.numc  where pays='Etats-Unis'
+intersect
+select nom from chercheur join mission on chercheur.numc=mission.numc  where pays='Australie'
+
+q3)
+
+select nom from chercheur minus
+select nom from chercheur join mission on chercheur.numc=mission.numc
+
+q4)
+
+select nom from chercheur minus
+select nom from (select nom,nomorg from chercheur,organisme
+    minus select nom,nomorg from chercheur join mission on chercheur.numc=mission.numc  join visite on mission.numis=visite.numis)
+
+q5) ??
+
+select nom from chercheur minus
+select nom from ((select nom,nomorg,pays from chercheur,organisme where pays='France')minus
+    select chercheur.nom,organisme.nomorg,organisme.pays from chercheur join mission on chercheur.numc=mission.numc join visite on mission.numis=visite.numis join organisme on organisme.nomorg=visite.nomorg)
+
+
+q6)
+
+SELECT nom,prenom from chercheur ORDER BY nom ;
+
+q7)
+SELECT numis from mission ORDER BY datedeb desc ;
+
+q8)
+SELECT pays,nomorg from organisme ORDER BY pays ;
+
+q9)
+select count(nom) from chercheur
+
+q10)
+
+select  count ( distinct chercheur.numc) from chercheur join mission on chercheur.numc=mission.numc
+
+q11)
+select objet from mission where datedeb=(select min(datedeb) from mission)
+q12)
+select nom from chercheur join mission on chercheur.numc=mission.numc where datedeb=(select min(datedeb) from mission)
+q13)
+select count ( organisme.nomorg) from organisme join visite on organisme.nomorg=visite.nomorg join mission on visite.numis=mission.numis join chercheur on mission.numc=chercheur.numc where prenom='Martine'
+
+q14)
+select count(numis) from mission where pays!='France'
+
+q15)
+SELECT DISTINCT m.numc FROM mission m
+                                JOIN mission m2 On m2.numc=m.numc
+WHERE m2.numis!=m.numis;
+
+q16)
+SELECT DISTINCT m.numc FROM mission m
+                                JOIN mission m2 ON m2.numc=m.numc
+WHERE m2.numis!=m.numis AND m.pays!='France' AND m2.pays!='France';
+
+q17)
+SELECT DISTINCT nom FROM chercheur c
+                             JOIN mission m ON m.numc=c.numc JOIN visite v ON v.numis=m.numis
+                             JOIN mission m2 ON m2.numc=c.numc JOIN visite v2 ON v2.numis=m2.numis
+                             JOIN mission m3 ON m3.numc=c.numc JOIN visite v3 ON v3.numis=m3.numis
+WHERE v.nomorg!=v2.nomorg AND v.nomorg!=v3.nomorg AND v3.nomorg!=v2.nomorg;
+1)
+
+UPDATE chercheur SET equipe='IA' WHERE nom='Duvivier';
+
+TD10
+
+http://www.lirmm.fr/~coletta/Cours/BD/TD10.pdf
+
+1)
+
+select count (distinct np) from produit
+
+2)
+select count(distinct np) from achat where ncli=103
+
+3)
+
+select distinct ncli, count(distinct np) as nbproduit from achat group by ncli
+
+4)
+
+select distinct ncli from
+    ( select distinct ncli, count(distinct np) as nbproduit
+      from achat
+      group by ncli)
+where nbproduit>=2;
+
+5)
+
+select distinct ncli from
+    (select ncli, count(distinct np) as nombreproduit
+     from achat
+     group by ncli)
+where nombreproduit=(select count(distinct np) from achat);
+
+6)
+
+select distinct nom from
+    (select nom, count(distinct np) as nombreproduit
+     from client join achat on client.ncli=achat.ncli
+     group by nom)
+where nombreproduit=(select count(distinct np) from achat);
+
+7)
+
+ (SELECT lib, min( qa) ,max(qa) //on groupe dans les lib le min de qa et le max de qa
+FROM produit join achat on produit.np=achat.np
+GROUP BY lib) ;
+
+8)
+
+select max(qr) from reap //max de qr dans reap
+
+9)
+select lib from produit join reap on reap.np=produit.np where qr=(select max(qr) from reap)
+
+10)
+
+SELECT lib,max(qr)   // on groupe tout les lib avec la quantite amx de qr
+FROM reap join produit on reap.np=produit.np
+GROUP BY lib order by max(QR);
+
+
+
+11)
+
+SELECT np FROM
+    (SELECT np, COUNT (DISTINCT date_reap) AS nbqr
+     FROM reap
+     GROUP BY np)
+WHERE nbqr >=2
+
+
+
+Q12)
+
+
+SELECT np FROM
+    (SELECT np, COUNT (DISTINCT date_reap) AS nbqr
+     FROM reap
+     GROUP BY np)
+WHERE nbqr >=2
+
+    minus select np from reap where qr<=50;
+
+13)SELECT nf FROM
+    (SELECT nf, COUNT (DISTINCT np) AS nbqr
+     FROM reap
+     GROUP BY nf)
+   WHERE nbqr = (SELECT COUNT (DISTINCT np) FROM reap);
+
+q14)
+
+??
+
+q15)
+
+SELECT numis, COUNT (DISTINCT nomorg) AS nb
+FROM visite
+GROUP BY numis;
+
+q16)
+
+select AVG(nb) from (
+
+                        SELECT numis, COUNT (DISTINCT nomorg) AS nb
+                        FROM visite
+                        GROUP BY numis
+                    )
+
+
+q17)
+SELECT nomorg FROM
+    (SELECT nomorg, COUNT (DISTINCT numis) AS nbmis
+     FROM visite
+     GROUP BY nomorg)
+WHERE nbmis >= 2;
+
+
+q18)
+
+SELECT nomorg FROM
+    (SELECT nomorg, COUNT (DISTINCT datevisite) AS datevisite
+     FROM visite
+     GROUP BY nomorg)
+WHERE datevisite >= 2 ;
+
+
+q19)
+
+SELECT nom, COUNT (DISTINCT nomorg) AS nbmis
+FROM chercheur join mission on chercheur.numc=mission.numc join visite on mission.numis=visite.numis
+GROUP BY nom;
+
+q20)
+
+
+
+TD 12 https://mail.umontpellier.fr/service/home/~/?auth=co&loc=fr&id=881&part=1
+
+file:///C:/Users/mathi/Downloads/TD12.pdf
+
+q1)
+
+
+create table vehicule (
+
+                          immatriculation char(9),
+                          charge_utile integer,
+                          constraint pk_vehicule primary key(immatriculation),
+                          constraint charge_ok check (charge_utile>300)
+
+
+);
+create table colis(
+                      num_colis integer,
+                      poids integer not null,
+                      constraint pk_colis primary key (num_colis),
+                      constraint poids_ok check(poids>0)
+
+);
+
+
+create table tournee(
+                        id_tour int,
+                        livreur varchar(30) not null,
+                        immatriculation char(9),
+                        date_tournee date not null,
+                        constraint pk_tournee primary key (id_tour),
+                        constraint fk_immatriculation foreign key(immatriculation) references vehicule(immatriculation)
+);
+
+create table livraison (
+
+                           id_tour integer,
+                           num_colis integer,
+                           adresse varchar(30) not null,
+                           heure integer,
+                           constraint pk_livraison primary key (id_tour,num_colis),
+                           constraint heure_ok check(heure between 6 AND 20),
+                           constraint fk_id_tour foreign key(id_tour) references
+                               tournee(id_tour),
+                           constraint fk_num_colis foreign key (num_colis) references colis(num_colis)
+
+
+);
+
+q4)
+
+select distinct immatriculation from tournee
+    join livraison on tournee.id_tour=livraison.id_tour
+    join colis on livraison.num_colis=colis.num_colis where poids>100
+
+q5)
+
+select livreur,immatriculation from tournee join livraison on tournee.id_tour=livraison.id_tour where num_colis=4
+
+q6)
+
+select adresse,date_tournee,heure from livraison join tournee on livraison.id_tour=tournee.id_tour where num_colis=2
+
+q7)
+
+select date_tournee,heure from livraison join tournee on livraison.id_tour=tournee.id_tour join colis on livraison.num_colis=colis.num_colis where poids=(select max(poids) from colis)
+
+q8)
+
+select livreur from tournee join livraison on tournee.id_tour=livraison.id_tour
+    minus
+select livreur from tournee join livraison on tournee.id_tour=livraison.id_tour where heure<10
+
+q9)
+
+select adresse,MAX(poids) from livraison join colis on colis.num_colis=livraison.num_colis group by adresse
+
+q10)
+
+select livreur from tournee where immatriculation='AA-000-AA' order by livreur
+
+q11)
+
+select AVG(charge_utile) from vehicule
+
+q12)
+
+SELECT COUNT ( distinct adresse) AS nb_adresse
+FROM livraison
+
+
+q13)
+
+select livreur from tournee
+group by livreur
+having count(distinct immatriculation) >=2
+
+q14)
+
+SELECT t.date_tournee FROM tournee t
+                               JOIN livraison l ON t.id_tour = l.id_tour
+GROUP By t.date_tournee
+HAVING COUNT(num_colis) >= 10;
+
+q15)
+SELECT livreur FROM(
+                       SELECT t.livreur, t.id_tour, v.charge_utile, SUM(c.poids) FROM tournee t
+                                                                                          JOIN livraison l ON t.id_tour = l.id_tour
+                                                                                          JOIN colis c ON l.num_colis = c.num_colis
+                                                                                          JOIN vehicule v ON t.immatriculation = v.immatriculation
+                       GROUP BY (t.livreur, t.id_tour, v.charge_utile)
+                       HAVING SUM(poids) > v.charge_utile);
+
+
+--1
+CREATE TABLE hotels(
+                       numHotel INTEGER,
+                       nom VARCHAR(15) NOT NULL,
+                       villeHotel VARCHAR(20) NOT NULL,
+                       prixChambre INTEGER NOT NULL,
+                       CONSTRAINT pk_hotels PRIMARY KEY (numHotel),
+                       CONSTRAINT hotels_prixChambre CHECK (prixChambre > 0));
+
+CREATE TABLE vendeurs(
+                         codeVendeur INTEGER,
+                         nom VARCHAR(15) NOT NULL,
+                         prenom VARCHAR(15) NOT NULL,
+                         ville VARCHAR(20) NOT NULL,
+                         salaire INTEGER NOT NULL,
+                         codeVendeurChef INTEGER NOT NULL,
+                         CONSTRAINT vendeurs_salaire CHECK (salaire > 0),
+                         CONSTRAINT pk_vendeurs PRIMARY KEY (codeVendeur),
+                         CONSTRAINT fk_codeVendeurChef_vendeurs FOREIGN KEY (codeVendeurChef) REFERENCES vendeurs(codeVendeur)
+);
+
+CREATE TABLE dormir(
+                       codeVendeur INTEGER,
+                       dateDormir DATE,
+                       numHotel INTEGER NOT NULL,
+                       CONSTRAINT pk_dormir PRIMARY KEY (codeVendeur, dateDormir),
+                       CONSTRAINT fk_dormir_numHotel FOREIGN KEY (numHotel) REFERENCES hotels(numHotel)
+);
+
+--2
+INSERT INTO hotels VALUES(1, 'Bellagio', 'Montpellier', 80);
+INSERT INTO hotels VALUES(2, 'Ibis', 'Montpellier', 60);
+INSERT INTO hotels VALUES(3, 'Arsenal', 'Paris', 200);
+INSERT INTO hotels VALUES(4, 'Auberge', 'Limoux', 30);
+INSERT INTO hotels VALUES(5, 'AntreDeux', 'Limoux', 40);
+INSERT INTO hotels VALUES(6, 'Elité', 'Limoux', 210);
+INSERT INTO hotels VALUES(7, 'Binks', 'Toulouse', 120);
+INSERT INTO hotels VALUES(8, 'Massalia', 'Marseille', 120);
+
+INSERT INTO vendeurs VALUES(11, 'El Hidraoui', 'Jawad', 'Montpellier', 2000, 12);
+INSERT INTO vendeurs VALUES(12, 'El Hidraoui', 'Aboulkacem', 'Montpellier', 2200, 12);
+INSERT INTO vendeurs VALUES(13, 'El Hidraoui', 'Nawel', 'Toulouse', 1600, 13);
+INSERT INTO vendeurs VALUES(14, 'El Hidraoui', 'Redoine', 'Toulouse', 2500, 14);
+INSERT INTO vendeurs VALUES(15, 'Durif', 'Sylvain', 'Limoux', 1400, 17);
+INSERT INTO vendeurs VALUES(16, 'Kapdebo', 'Laura', 'Limoux', 1600, 17);
+INSERT INTO vendeurs VALUES(17, 'Longeanie', 'Chaan', 'Limoux', 1800, 17);
+INSERT INTO vendeurs VALUES(18, 'Caux', 'Clarence', 'Limoux', 1300, 18);
+INSERT INTO vendeurs VALUES(19, 'Balast', 'Bastien', 'Limoux', 1300, 18);
+INSERT INTO vendeurs VALUES(20, 'Dury', 'Baptiste', 'Limoux', 1700, 20);
+INSERT INTO vendeurs VALUES(21, 'Fay', 'Zoe', 'Paris', 1300, 21);
+INSERT INTO vendeurs VALUES(22, 'Captain', 'Craps', 'Marseille', 1900, 22);
+INSERT INTO vendeurs VALUES(23, 'Leponge', 'Bob', 'Marseille', 1200, 22);
+
+INSERT INTO dormir VALUES(11, '18.09.2021', 1);
+INSERT INTO dormir VALUES(12, '21.11.2021', 4);
+INSERT INTO dormir VALUES(13, '08.05.2021', 7);
+INSERT INTO dormir VALUES(14, '14.06.2021', 2);
+INSERT INTO dormir VALUES(15, '19.09.2021', 3);
+INSERT INTO dormir VALUES(11, '27.02.2021', 5);
+INSERT INTO dormir VALUES(15, '27.02.2021', 5);
+INSERT INTO dormir VALUES(12, '18.09.2021', 1);
+INSERT INTO dormir VALUES(12, '20.09.2021', 8);
+INSERT INTO dormir VALUES(11, '20.09.2021', 8);
+INSERT INTO dormir VALUES(17, '10.01.2021', 4);
+
+INSERT INTO dormir VALUES(11, '27.12.2021', 1);
+INSERT INTO dormir VALUES(12, '26.07.2021', 1);
+INSERT INTO dormir VALUES(13, '25.07.2021', 1);
+INSERT INTO dormir VALUES(14, '24.07.2021', 1);
+INSERT INTO dormir VALUES(15, '23.07.2021', 1);
+INSERT INTO dormir VALUES(16, '22.07.2021', 1);
+INSERT INTO dormir VALUES(17, '21.07.2021', 1);
+INSERT INTO dormir VALUES(18, '20.07.2021', 1);
+INSERT INTO dormir VALUES(19, '19.07.2021', 1);
+INSERT INTO dormir VALUES(20, '18.07.2021', 1);
+INSERT INTO dormir VALUES(21, '17.07.2021', 1);
+INSERT INTO dormir VALUES(22, '16.07.2021', 1);
+INSERT INTO dormir VALUES(23, '15.07.2021', 1);
+
+INSERT INTO dormir VALUES(12, '28.12.2021', 1);
+INSERT INTO dormir VALUES(11, '28.12.2021', 1);
+--3
+SELECT nom, prenom FROM vendeurs
+WHERE ville LIKE 'Montpellier'
+ORDER BY salaire DESC;
+
+--4
+SELECT AVG(prixChambre) FROM hotels
+WHERE villeHotel LIKE 'Montpellier';
+
+--5
+SELECT nom, prenom FROM vendeurs
+WHERE codeVendeur IN (
+    SELECT codeVendeur FROM dormir
+    WHERE numHotel IN (
+        SELECT numHotel FROM hotels
+        WHERE villeHotel LIKE 'Montpellier'))
+INTERSECT
+SELECT nom, prenom FROM vendeurs
+WHERE codeVendeur IN (
+    SELECT codeVendeur FROM dormir
+    WHERE numHotel IN (
+        SELECT numHotel FROM hotels
+        WHERE villeHotel LIKE 'Marseille'));
+
+--6
+SELECT nom, prenom FROM vendeurs
+                            MINUS
+SELECT nom, prenom FROM vendeurs
+WHERE codeVendeur IN (
+    SELECT codeVendeur FROM dormir
+    WHERE dateDormir >= '01.01.2021' AND dateDormir <= '31.01.2021'
+);
+
+--7
+SELECT nom, prenom FROM vendeurs
+WHERE codeVendeur IN (
+    SELECT codeVendeurChef FROM vendeurs
+    WHERE prenom LIKE 'Bob' AND nom LIKE 'Leponge');
+
+--8
+SELECT nom FROM hotels WHERE
+        prixChambre IN (
+        SELECT MAX(prixChambre) FROM hotels);
+
+--9
+SELECT v.nom, v.prenom, COUNT(d.codeVendeur) FROM vendeurs v
+                                                      JOIN dormir d ON v.codeVendeur = d.codeVendeur
+GROUP BY (v.nom, v.prenom);
+
+--10
+SELECT h.nom FROM hotels h
+                      JOIN dormir d ON h.numHotel = d.numHotel
+                      JOIN vendeurs v ON v.codeVendeur = d.codeVendeur
+GROUP BY h.nom
+HAVING COUNT(DISTINCT d.codeVendeur) = (
+    SELECT COUNT(DISTINCT v2.codeVendeur) FROM vendeurs v2
+);
+
+--11
+SELECT h.nom FROM hotels h
+                      JOIN dormir d ON h.numHotel = d.numHotel
+                      JOIN vendeurs v ON v.codeVendeur = d.codeVendeur
+WHERE dateDormir = '28.12.2021'
+GROUP BY h.nom
+HAVING COUNT(DISTINCT d.codeVendeur) > 1;
+
+
+
+
+
+
